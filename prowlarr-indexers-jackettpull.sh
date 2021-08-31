@@ -18,20 +18,20 @@ git fetch --all
 git config commit.template .gitcommit_pulltemplate.txt
 ## Check if jackett-pulls exists (remote)
 pulls_check=$(git ls-remote --heads origin "$jackett_pulls_branch")
-local_pulls_check=$(git show-ref --quiet refs/heads/"$jackett_pulls_branch")
-if [ -z "$pulls_check" ]; then
+local_pulls_check=$(git branch --list "$jackett_pulls_branch")
+if [[ -z "$pulls_check" ]]; then
     ## no existing remote  branch found
     pulls_exists=false
-    echo "origin/$jackett_pulls_branch does not exist"
-    if [ -z "$local_pulls_check" ]; then
+    if [ -n "$local_pulls_check" ]; then
         ## local branch exists
+        git checkout $jackett_pulls_branch
         echo "local $jackett_pulls_branch does exist"
         git reset --mixed origin/master
         echo "reset mixed based on origin/master"
     else
         ## local branch does not exist
         echo "local $jackett_pulls_branch does not exist"
-        git checkout -b "$jackett_pulls_branch" - origin/master
+        git checkout -b "$jackett_pulls_branch" origin/master --no-track
         echo "origin/$jackett_pulls_branch created from master"
     fi
 ## create new branch from master
