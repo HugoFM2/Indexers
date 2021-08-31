@@ -16,20 +16,30 @@ cd "$prowlarr_git_path" || exit
 git fetch --all
 ## Config Git and Prevent Conflicts
 git config commit.template .gitcommit_pulltemplate.txt
-## Check if jackett-pulls exists
+## Check if jackett-pulls exists (remote)
 pulls_check=$(git ls-remote --heads origin "$jackett_pulls_branch")
+local_pulls_check=$(git show-ref --quiet refs/heads/"$jackett_pulls_branch")
 if [ -z "$pulls_check" ]; then
-    ## no existing branch found
+    ## no existing remote  branch found
     pulls_exists=false
     echo "origin/$jackett_pulls_branch does not exist"
-    git checkout -b "$jackett_pulls_branch" - origin/master
-    echo "origin/$jackett_pulls_branch created from master"
+    if [ -z "$local_pulls_check" ]; then
+        ## local branch exists
+        echo "local $jackett_pulls_branch does exist"
+        git reset --mixed origin/master
+        echo "reset mixed based on origin/master"
+    else
+        ## local branch does not exist
+        echo "local $jackett_pulls_branch does not exist"
+        git checkout -b "$jackett_pulls_branch" - origin/master
+        echo "origin/$jackett_pulls_branch created from master"
+    fi
 ## create new branch from master
 else
-    ## existing branch found
+    ## existing remote branch found
     pulls_exists=true
     echo "origin/$jackett_pulls_branch does exist"
-    #git checkout "$jackett_pulls_branch"
+    git checkout "$jackett_pulls_branch"
     echo "origin/$jackett_pulls_branch checked out from origin"
     existing_message=$(git log --format=%B -n1)
 ## pull down recently
@@ -66,7 +76,7 @@ for pick_commit in ${commit_range}; do
     fi
 done
 echo "completed pulls"
-echo "checking for backporting needed"
+echo "checking for if indexer backporting is needed"
 ## Work on Newer Version Indexers and backport
 v2_indexers=$(git diff --cached --name-only | grep "v2") ## get files to check for v2
 v2_pattern="v2"
@@ -78,7 +88,7 @@ if [[ -n $back_port ]]; then
         v1_indexer=${indexer/$v2_pattern/$v1_pattern}
         echo "looking for v1 indexer of $v1_indexer"
         if [[ -f $v1_indexer ]]; then
-            echo "found v1 indexer for $indexer"
+            echo "found v1 indexer for $indexer ....backporting"
             git difftool --no-index "$indexer" "$v1_indexer"
             git add "$v1_indexer"
         else
@@ -91,7 +101,7 @@ echo "After review; the script will commit the changes."
 echo "Ensure no v1 indexers need deleting; ensure no selectors are in v1"
 read -p "Press any key to continue or [Ctrl-C] to abort.  Waiting for human review..." -n1 -s
 new_commit_msg="$prowlarr_commit_template $jackett_recent_commit"
-if [ $pulls_exists ]; then
+if [ $pulls_exists = true ]; then
     ## If our branch existed, we squash and ammend
     git merge --squash
     git commit --amend -m "$new_commit_msg" -m "$existing_message"
