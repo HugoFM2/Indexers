@@ -62,14 +62,18 @@ for pick_commit in ${commit_range}; do
     yml_conflicts=$(git diff --cached --name-only | grep ".yml")
     if [[ -n $has_conflicts ]]; then
         ## Handle Common Conflicts
+        echo "conflicts exist"
         if [[ -n $csharp_conflicts ]]; then
+            echo "C# conflicts exist; removing *.cs"
             git rm "*.cs"
         fi
         if [[ -n $readme_conflicts ]]; then
+            echo "README conflict exists; using Prowlarr README"
             git checkout --ours "README.md"
             git add "README.md"
         fi
         if [[ -n $yml_conflicts ]]; then
+            echo "YML conflict exists; using using and adding jackett yml"
             git checkout --theirs "*.yml"
             git add "*.yml" ## Add any new yml definitions
         fi
@@ -99,7 +103,7 @@ fi
 ## Wait for user interaction to handle any conflicts and review
 echo "After review; the script will commit the changes."
 echo "Ensure no v1 indexers need deleting; ensure no selectors are in v1"
-read -p "Press any key to continue or [Ctrl-C] to abort.  Waiting for human review..." -n1 -s
+read -r -p "Press any key to continue or [Ctrl-C] to abort.  Waiting for human review..." -n1 -s
 new_commit_msg="$prowlarr_commit_template $jackett_recent_commit"
 if [ $pulls_exists = true ]; then
     ## If our branch existed, we squash and ammend
