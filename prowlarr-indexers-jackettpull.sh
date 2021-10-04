@@ -65,19 +65,23 @@ for pick_commit in ${commit_range}; do
         echo "conflicts exist"
         if [[ -n $csharp_conflicts ]]; then
             echo "C# conflicts exist; removing *.cs"
-            git rm "*.cs"
+            git rm --f "*.cs"
         fi
         if [[ -n $readme_conflicts ]]; then
             echo "README conflict exists; using Prowlarr README"
             git checkout --ours "README.md"
-            git add "README.md"
+            git add --f "README.md"
         fi
         if [[ -n $yml_conflicts ]]; then
-            echo "YML conflict exists; using using and adding jackett yml"
+            echo "YML conflict exists; using and adding jackett yml ||| $yml_conflicts"
             git checkout --theirs "*.yml"
-            git add "*.yml" ## Add any new yml definitions
+            git add --f "*.yml" ## Add any new yml definitions
         fi
     fi
+    unset has_conflicts
+    unset readme_conflicts
+    unset csharp_conflicts
+    unset yml_conflicts
 done
 echo "completed pulls"
 echo "checking for if indexer backporting is needed"
