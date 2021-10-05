@@ -44,12 +44,17 @@ else
     existing_message=$(git log --format=%B -n1)
 ## pull down recently
 fi
-
 jackett_recent_commit=$(git rev-parse "$jackett_repo_name")
 echo "most recent jackett commit is: $jackett_recent_commit"
 recent_pulled_commit=$(git log -n 10 | grep "$prowlarr_commit_template" | awk 'NR==1{print $5}')
 ## check most recent 10 commits in case we have other commits
 echo "most recent origin jackett pulled commit is: $recent_pulled_commit"
+
+## do nothing we are we up to date
+if [[ "$jackett_recent_commit" = "$recent_pulled_commit" ]]; then
+    echo "we are current with jackett; exiting"
+    exit 0
+fi
 
 ## Pull commits between our most recent pull and jackett's latest commit
 commit_range=$(git log --reverse --pretty="%H" "$recent_pulled_commit".."$jackett_recent_commit")
