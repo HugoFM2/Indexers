@@ -24,6 +24,7 @@ if [[ -z "$pulls_check" ]]; then
     pulls_exists=false
     if [ -n "$local_pulls_check" ]; then
         ## local branch exists
+        git branch --unset-upstream
         git checkout $jackett_pulls_branch
         echo "local $jackett_pulls_branch does exist"
         git reset --mixed origin/master
@@ -39,7 +40,7 @@ else
     ## existing remote branch found
     pulls_exists=true
     echo "origin/$jackett_pulls_branch does exist"
-    git checkout "$jackett_pulls_branch"
+    git checkout "origin/$jackett_pulls_branch"
     echo "origin/$jackett_pulls_branch checked out from origin"
     existing_message=$(git log --format=%B -n1)
 ## pull down recently
