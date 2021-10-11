@@ -39,9 +39,9 @@ if [[ -z "$pulls_check" ]]; then
 else
     ## existing remote branch found
     pulls_exists=true
-    echo "origin/$jackett_pulls_branch does exist"
-    git checkout "origin/$jackett_pulls_branch"
-    echo "origin/$jackett_pulls_branch checked out from origin"
+    echo "$jackett_pulls_branch does exist"
+    git checkout "$jackett_pulls_branch"
+    echo "$jackett_pulls_branch checked out from origin"
     existing_message=$(git log --format=%B -n1)
 ## pull down recently
 fi
